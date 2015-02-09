@@ -111,14 +111,14 @@ main(int argc, char* argv[])
 	aerospike as;
 	example_connect_to_aerospike(&as);
 	
-
+/*
 	as_config config;
 	as_config_init(&config);
 
 	config.policies.write.key = AS_POLICY_KEY_SEND;
 	config.policies.read.key = AS_POLICY_KEY_SEND;
 	config.policies.key =  AS_POLICY_KEY_SEND;
-
+*/
 	// Start clean.
 	remove_test_records(&as);
 
@@ -159,15 +159,14 @@ main(int argc, char* argv[])
 
 	// Make a batch of all the keys we inserted.
 	as_batch batch;
-	as_batch_init(&batch, g_n_keys);
-	
+	as_batch_inita(&batch, g_n_keys);
+	uint64_t keyval[2 * g_n_keys];
 	LOG("set up batch with keys.");
 	for (uint32_t i = 0; i < g_n_keys; i++) {
-		uint64_t keyval[2];
-		keyval[0] = i;
-		keyval[1] = i;
+		keyval[i * 2] = i;
+		keyval[i * 2 + 1] = i;
 		
-		as_key_init_raw(as_batch_keyat(&batch, i), g_namespace, k_set, (uint8_t*)(keyval), 16);      
+		as_key_init_raw(as_batch_keyat(&batch, i), g_namespace, k_set, (uint8_t*)(&keyval[i * 2]), 16);      
 
 		uint8_t* keys =  as_bytes_get((as_bytes*) (as_batch_keyat(&batch, i)->valuep));		
 		
@@ -188,7 +187,7 @@ main(int argc, char* argv[])
 	LOG("check batch keys.");
 	for (uint32_t i = 0; i < g_n_keys; i++) {	    
 
-		uint8_t* keys =  as_bytes_get((as_bytes*) (as_batch_keyat(&batch, i)->valuep));		
+		uint8_t* keys =  as_bytes_get((as_bytes*) ((as_batch_keyat(&batch, i)->valuep)));		
 		
 		LOG("index %u, key address: %" PRId64 ", key %02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X:%02X :", i, as_batch_keyat(&batch, i)->valuep,*keys,keys[1],keys[2],keys[3],keys[4],keys[5],keys[6],keys[7],*(keys+8),keys[9],keys[10],keys[11],keys[12],keys[13],keys[14],keys[15]);          
 	}
